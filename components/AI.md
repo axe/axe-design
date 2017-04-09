@@ -55,15 +55,15 @@
 
 ### Finite State Machine
 
-#### BinaryCondition<S>
+#### BinaryCondition< S >
 - `( subject: S ): boolean`
 
-#### Transition<S>
+#### Transition< S >
 - `condition: BinaryCondition<S>`
 - `priority: number`
 - `probability: number`
 
-#### TransitionMap<S>
+#### TransitionMap< S >
 - `transitions: Transition<S>[][][]`
 - `add<E>( fromState: E, transition: Transition<S>, toState: E ): void`
 - `all<E>( transition: Transition<S>, toState: E ): void`
