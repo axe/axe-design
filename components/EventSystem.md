@@ -18,7 +18,7 @@ This component offers a simple and decoupled way for components to communicate. 
 - **Event Listener**: A prioritized subscriber
 - **Event Listener List**: A prioritized list of listeners for a specific event
 - **Event System**: The structure that allows creating events, listening to an event, and triggering events
-- **Event Queued**: An event to be queued
+- **Event Queued**: An event to be queued for later processing
 
 ## Design
 
@@ -41,7 +41,7 @@ This component offers a simple and decoupled way for components to communicate. 
 #### EventListenerList<L>
 - `event: Event<L>`
 - `head: EventListener<L>`
-- `add( listener: L, priority: number = 5 ): EventListener<L>`
+- `add( listener: L, once: boolean, priority: number = 5 ): EventListener<L>`
 - `clear(): void`
 
 #### EventQueued<L>
