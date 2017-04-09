@@ -17,32 +17,68 @@
 
 ## Terms
 
-- **State**: A state to apply to an actor
+- **State Machine**: Updates the state of a subject
 
 ### Finite State Machine
 - **Binary Condition**: A function that returns true or false
-- **Transition**: A set of conditions that need to be true to signal a state change. Can have a priority and a probability factor.
-- **Transition Map**: Says "if actor is in state A and a transition is true, move to state B"
+- **Finite Transition**: A set of conditions that need to be true to signal a state change. Can have a priority and a probability factor.
+- **Finite Transition Map**: Says "if actor is in state A and a transition is true, move to state B"
 - **Finite**: Helper functions to create complex finite conditions
+- **Finite State**: A state to apply to an actor
+- **Finite State Map**: A map of state logic to state enumeration
 - **Finite Machine**: Handles updating the current state and determines the next state
 
 ### Fuzzy State Machine
 - **Fuzzy Condition**: A function that returns a value between 0.0 and 1.0
 - **Fuzzy**: Helper functions to create complex fuzzy conditions
+- **Fuzzy Condition Map**: A map of state enumeration to the fuzzy condition
+- **Fuzzy State**: A state to apply to an actor to a certain degree determined by the fuzzy condition
+- **Fuzzy State Map**: A map of state logic to state enumeration
 - **Fuzzy Machine**: Handles updating the current states
 
 ### Steering Behaviors
-- **Filter**:
-- **Target**:
-- **Constraint**:
-- **Behavior**:
-- **Group Behavior**:
-- **Complex Behavior**:
-- **Prioritized Behavior**:
-- **State Behavior**:
-- **Contextual Behavior**:
+- **Filter**: Determines whether an entity can affect the subject (is near, visible, etc)
+  - **Side**: Returns true if the target is in front/back of the subject
+  - **View**: Returns true if the target is view of the subject (given FOV)
+  - **Proximity**: Returns true if the target is within a circle around the subject
+  - **And**: A compound filter that returns true if ALL of its filters return true
+  - **Or**: A compound filter that returns true if ANY of its filters return true
+  - **None**: Always returns true
+- **Target**: Provides information on a target like position, velocity, direction, etc
+  - **
+- **Constraint**: A restriction placed on a subject when it comes to its velocity, direction, etc
+- **Behavior**: A function which produces a force to be applied to the subject
+  - **To**: Steers towards a target at maximum velocity
+  - **Away**: Steers away from a target at maximum velocity
+  - **Arrive**: Steers to a target coming to a gradual stop
+  - **Wander**: Steers a subject randomly around
+  - **Constant**: Steers a subject with some constant force
+  - **Drive**: Steers a subject based on driving inputs (forward, turn left, turn right, backup)
+  - **Containment**: Steers a subject to stay inside a geometry
+  - **Face**: Steers a subject to look at a target
+  - **Follow**: Steers a subject to follow behind a potentially moving target
+  - **FlowField**: Steers a subject based on a flow field
+  - **Path**: Steers a subject along a path
+- **Accumulator**: A function which accepts the output of multiple behaviors to produce a single output
+  - **Average**: Takes the average of the output
+  - **First**: Takes the first non-zero output
+  - **Max**: Takes the largest output
+  - **Context**: Prioritizes "bad" behaviors above "good"
+- **Group Behavior**: A behavior which uses nearby entities to produce a force to be applied
+  - **Alignment**: A force which aligns the subject with it's neighbors
+  - **Cohesion**: A force which aligns the subject to the center of it's neighbors
+  - **Separation**: A force which keeps a subject from running into it's neighbors
+  - **Avoid**: A force which avoids collisions with it's neighbors while actively moving
+  - **Dodge**: A force which avoids collisions with it's neighbors while not actively moving
+  - **MatchVelocity**: A force which helps the subject match it's velocity to it's neighbors
+- **Complex Behavior**: A behavior which is made up of multiple behaviors
+- **Accumulated Behavior**: A complex behavior which uses an accumulator to calculate an output force
+- **State Behavior**: A complex behavior where behaviors are called based on the state of the subject
 
 ### Path Finding
+- **Node**:
+- **Move**:
+- **Map**:
 
 ## Design
 
@@ -57,15 +93,15 @@
 #### BinaryCondition< S >
 - `( subject: S ): boolean`
 
-#### Transition< S >
+#### FiniteTransition< S >
 - `condition: BinaryCondition<S>`
 - `priority: number`
 - `probability: number`
 
-#### TransitionMap< S, E >
-- `transitions: Transition<S>[E][E][]`
-- `add( fromState: E, transition: Transition<S>, toState: E ): void`
-- `all( transition: Transition<S>, toState: E ): void`
+#### FiniteTransitionMap< S, E >
+- `transitions: FiniteTransition<S>[E][E][]`
+- `add( fromState: E, transition: FiniteTransition<S>, toState: E ): void`
+- `all( transition: FiniteTransition<S>, toState: E ): void`
 
 #### Finite
 - `and<S>( ...conditions: BinaryCondition<S> ): BinaryCondition<S>`
@@ -79,7 +115,7 @@
 - `begin( subject: S, state: GameState, view: View<V> ): boolean`
 - `end( subject: S, state: GameState, view: View<V> ): boolean`
 
-### FiniteStateMap< S, E >
+#### FiniteStateMap< S, E >
 - `states: FiniteState<S>[E]`
 - `set( stateEnum: E, state: FiniteState<S> ): void`
 
@@ -87,7 +123,7 @@
 - `current: E`
 - `next: E`
 - `states: FiniteStateMap<S, E>`
-- `transitions: TransitionMap<S, E>`
+- `transitions: FiniteTransitionMap<S, E>`
 
 ---
 ### Fuzzy State Machine
@@ -104,18 +140,24 @@
 - `ranged<S>( min: number, max: number, condition: FuzzyCondition<S> ): FuzzyCondition<S>`
 
 #### FuzzyState< S >
-- `update( subject: S, active: number, state: GameState, view: View<V> ): void`
+- `update( subject: S, active: number, totalActive: number, state: GameState, view: View<V> ): void`
 
-### FuzzyStateMap< S, E >
+#### FuzzyStateMap< S, E >
 - `states: FuzzyState<S>[E]`
 - `set( stateEnum: E, state: FuzzyState<S> ): void`
 
+#### FuzzyConditionMap< S, E >
+- `conditions: FuzzyCondition<S>[E]`
+- `set( stateEnum: E, condition: FuzzyCondition<S> ): void`
+
 #### FuzzyMachine< S, E > : StateMachine< S, E >
 - `states: FuzzyStateMap<S, E>`
-- `conditions: FuzzyCondition[E]`
+- `conditions: FuzzyConditionMap<S, E>`
 
 ---
 ### Steering Behaviors
+
+####
 
 ---
 ### Path Finding
