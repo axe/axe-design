@@ -18,6 +18,7 @@ This component offers a simple and decoupled way for components to communicate. 
 - **Event Listener**: A prioritized subscriber
 - **Event Listener List**: A prioritized list of listeners for a specific event
 - **Event System**: The structure that allows creating events, listening to an event, and triggering events
+- **Event Queued**: An event to be queued
 
 ## Design
 
@@ -30,10 +31,12 @@ This component offers a simple and decoupled way for components to communicate. 
 - `priority: number`
 - `once: boolean`
 - `listener: L`
+- `stopped: boolean`
 - `next: EventListener<L>`
 - `muted: boolean`
 - `mute( muted: boolean ): boolean`
 - `remove(): boolean`
+- `stop(): void`
 
 #### EventListenerList<L>
 - `event: Event<L>`
@@ -41,13 +44,21 @@ This component offers a simple and decoupled way for components to communicate. 
 - `add( listener: L, priority: number = 5 ): EventListener<L>`
 - `clear(): void`
 
+#### EventQueued<L>
+- `event: Event<L>`
+- `arguments: object`
+
 #### EventSystem
 - `lists: EventListenerList[]`
+- `queued: Queue<EventQueued>`
+- `synchronous: boolean`
+- `create<L>( name: string ): Event<L>`
 - `on<L>( event: Event<L>, listener: L, priority: number = 5 ): EventListener<L>`
 - `once<L>( event: Event<L>, listener: L, priority: number = 5 ): EventListener<L>`
 - `off<L>( event: Event<L> ): void`
 - `trigger<L>( event: Event<L> ): L`
-- `create<L>( name: string ): Event<L>`
+- `queue<L>( event: Event<L> ): L`
+- `process(): number`
 
 ### Example
 
@@ -72,4 +83,10 @@ listener.mute( true );
 
 // ignore event forever
 listener.remove();
+
+// queue event
+events.queue( DEATH )( myPlayer );
+
+// process queued events
+events.process()
 ```
