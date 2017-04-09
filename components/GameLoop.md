@@ -4,7 +4,11 @@
 
 ## Dependencies
 
+- [Core](Core.md)
+
 ## Sub-Components
+
+- None
 
 ## Terms
 
