@@ -6,11 +6,9 @@ Each component that makes up Axe is broken up into it's own design with the
 following information:
 - Description
 - Dependencies
-- Sub-Components (if applicable)
-- High-Level Design
-  - Class/Interface/Enums and their purpose
-- Low-Level Design
-  - Class/Interface/Enums and their properties and functions
+- Sub-Components
+- Terms
+- Design
 
 Axe components are designed to be easily incorporated into any code base, you do
 not need to use Axe as the main game engine and you don't even need to use its

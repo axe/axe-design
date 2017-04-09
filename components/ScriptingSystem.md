@@ -6,6 +6,6 @@
 
 ## Sub-Components
 
-## High-Level Design
+## Terms
 
-## Low-Level Design
+## Design
