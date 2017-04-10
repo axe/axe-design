@@ -37,6 +37,8 @@
 - **Fuzzy Machine**: Handles updating the current states
 
 ### Steering Behaviors
+- **SteerSubject**: An object which is controlled by steering behaviors
+- **SteerController**: Handles applying the forces of a steering behavior to a subject
 - **Filter**: Determines whether an entity can affect the subject (is near, visible, etc)
   - **Side**: Returns true if the target is in front/back of the subject
   - **View**: Returns true if the target is view of the subject (given FOV)
@@ -45,8 +47,22 @@
   - **Or**: A compound filter that returns true if ANY of its filters return true
   - **None**: Always returns true
 - **Target**: Provides information on a target like position, velocity, direction, etc
-  - **
+  - **Aggregate**: Targets the result of an aggregate given nearby targets
+  - **Chain**: Targets a given target, if none is found checks a second target
+  - **Filtered**: Targets a given target if it passes a filter
+  - **Future**: Targets the future position of another target
+  - **InLine**: Targets the closest point in the segment between two targets
+  - **Interpose**: Targets a specific point % of the way between two targets
+  - **Relative**: Targets relative to another subject (ie. protect another subject)
+- **Aggregate**: Takes a group of targets and outputs a single target
+  - **Closest**: Targets the closest in the group
+  - **Average**: Targets the average position of the group
+  - **Slowest**: Targets the slowest target in the group
+  - **Weakest**: Finds the target which the subject can intercept the soonest
+  - **Strongest**: Finds the target which can intercept the subject the soonest
 - **Constraint**: A restriction placed on a subject when it comes to its velocity, direction, etc
+  - **Turning**: Restricts how fast a subject can turn
+  - **ZeroVelocityThreshold**: Restricts the velocity to zero when it's below a given threshold
 - **Behavior**: A function which produces a force to be applied to the subject
   - **To**: Steers towards a target at maximum velocity
   - **Away**: Steers away from a target at maximum velocity
@@ -59,6 +75,7 @@
   - **Follow**: Steers a subject to follow behind a potentially moving target
   - **FlowField**: Steers a subject based on a flow field
   - **Path**: Steers a subject along a path
+  - **Modifier**: Modifies an existing behavior
 - **Accumulator**: A function which accepts the output of multiple behaviors to produce a single output
   - **Average**: Takes the average of the output
   - **First**: Takes the first non-zero output
@@ -157,7 +174,57 @@
 ---
 ### Steering Behaviors
 
-####
+#### SteerSubject< V >
+- `getPosition(): V`
+- `getVelocity(): V`
+- `getAcceleration(): V`
+- `getDirection(): V`
+
+#### SteerController< V >
+- `subject: SteerSubject<V>`
+- `steer: Steer<V>`
+- `constraint: Constraint<V>`
+- `immediate: boolean`
+- `update( state: GameState ): void`
+
+#### Filter< V >
+- `isValid( subject: SteerSubject<V>, test: SpatialEntity<V> )`
+
+#### FilterSide< V > : Filter< V >
+- `front: boolean`
+
+#### FilterView< V > : Filter< V >
+- `fovTan: number`
+- `fovCos: number`
+- `fovType: FieldOfView`
+
+#### FilterProximity< V > : Filter< V >
+- `minimum: number`
+- `maximum: number`
+
+#### FilterAnd< V > : Filter< V >
+- `filters: Filter<V>[]`
+
+#### FilterOr< V > : Filter< V >
+- `filters: Filter<V>[]`
+
+#### FilterNone< V > : Filter< V >
+
+#### Target< V >
+
+#### TargetAggregate< V > : Target< V >
+
+#### TargetChain< V > : Target< V >
+
+#### TargetFiltered< V > : Target< V >
+
+#### TargetFuture< V > : Target< V >
+
+#### TargetInLine< V > : Target< V >
+
+#### TargetInterpose< V > : Target< V >
+
+#### TargetRelative< V > : Target< V >
 
 ---
 ### Path Finding
