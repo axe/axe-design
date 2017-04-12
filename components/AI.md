@@ -39,6 +39,7 @@
 ### Steering Behaviors
 - **SteerSubject**: An object which is controlled by steering behaviors
 - **SteerController**: Handles applying the forces of a steering behavior to a subject
+- **SteerQuery**: Query parameters passed to a spatial database
 - **Filter**: Determines whether an entity can affect the subject (is near, visible, etc)
   - **Side**: Returns true if the target is in front/back of the subject
   - **View**: Returns true if the target is view of the subject (given FOV)
@@ -63,7 +64,7 @@
 - **Constraint**: A restriction placed on a subject when it comes to its velocity, direction, etc
   - **Turning**: Restricts how fast a subject can turn
   - **ZeroVelocityThreshold**: Restricts the velocity to zero when it's below a given threshold
-- **Behavior**: A function which produces a force to be applied to the subject
+- **Steer**: A function (behavior) which produces a force to be applied to the subject
   - **To**: Steers towards a target at maximum velocity
   - **Away**: Steers away from a target at maximum velocity
   - **Arrive**: Steers to a target coming to a gradual stop
@@ -187,6 +188,15 @@
 - `immediate: boolean`
 - `update( state: GameState ): void`
 
+#### SteerQuery< V >
+- `queryOffset: number`
+- `queryOffsetTime: number`
+- `queryRadius: number`
+- `contains: boolean`
+- `groups: number`
+- `max: number`
+- `filter: Filter<V>`
+
 #### Filter< V >
 - `isValid( subject: SteerSubject<V>, test: SpatialEntity<V> )`
 
@@ -210,21 +220,147 @@
 
 #### FilterNone< V > : Filter< V >
 
+#### TargetFactory< V >
+- `newTarget( SteerSubject<V> ): Target<V>`
+
 #### Target< V >
+- `getTarget( SteerSubject<V> ): SpatialEntity<V>`
 
 #### TargetAggregate< V > : Target< V >
+- `aggregate: Aggregate< V >`
+- `database: SpatialDatabase< V >`
+- `query: SteerQuery< V >`
 
 #### TargetChain< V > : Target< V >
+- `first: Target<V>`
+- `second: Target<V>`
 
 #### TargetFiltered< V > : Target< V >
+- `filter: Filter<V>`
+- `target: Target<V>`
 
 #### TargetFuture< V > : Target< V >
+- `target: Target<V>`
+- `interceptOnly: boolean`
 
 #### TargetInLine< V > : Target< V >
+- `first: Target<V>`
+- `second: Target<V>`
 
 #### TargetInterpose< V > : Target< V >
+- `start: Target<V>`
+- `end: Target<V>`
+- `delta: number`
 
 #### TargetRelative< V > : Target< V >
+- `relativeTo: SteerSubject<V>`
+- `target: Target<V>`
+
+#### Aggregate< V >
+- `reset( subject: SteerSubject<V> ): void`
+- `aggregate( entity: SpatialEntity<V>, overlap: number ): void`
+- `result(): Target<V>`
+
+#### AggregateClosest< V > : Aggregate< V >
+
+#### AggregateAverage< V > : Aggregate< V >
+
+#### AggregateSlowest< V > : Aggregate< V >
+
+#### AggregateWeakest< V > : Aggregate< V >
+
+#### AggregateStrongest< V > : Aggregate< V >
+
+#### Constraint< V >
+- `constrain( subject: SteerSubject<V>, force: V, elapsed: number ): boolean`
+
+#### ConstraintTurning< V >
+- `radiansPerSecond: number`
+
+#### ConstraintZeroVelocityThreshold< V >
+- `threshold: number`
+
+#### Steer< V >
+- `getForce( subject: SteerSubject<V>, elapsed: number, direction: V ): number`
+- `getMaximum(): number`
+- `setMaximum( maximum: number ): void`
+- `getMinimum(): number`
+- `setMinimum( minimum: number ): void`
+- `canShare(): boolean`
+- `copy(): Steer<V>`
+
+#### AbstractSteer< V > : Steer< V >
+- `minimum: number`
+- `maximum: number`
+
+#### SteerTo< V > : AbstractSteer< V >
+- `target: Target<V>`
+
+#### SteerAway< V > : AbstractSteer< V >
+- `target: Target<V>`
+
+#### SteerArrive< V > : AbstractSteer< V >
+- `target: Target<V>`
+- `caution: number`
+- `arrived: number`
+
+#### SteerWander< V > : AbstractSteer< V >
+- `theta: number`
+- `radius: number`
+- `distance: number`
+- `wander: number`
+
+#### SteerConstant< V > : AbstractSteer< V >
+- `force: V`
+
+#### SteerDrive< V > : AbstractSteer< V >
+- `thrust: number`
+- `brake: number`
+- `deceleration: number`
+- `thrusting: boolean`
+- `braking: boolean`
+- `turnForce: V[]`
+- `turn: boolean[]`
+- `shared: boolean`
+
+#### SteerContainment< V > : AbstractSteer< V >
+- `container: Geometry<V>`
+- `buffer: number`
+
+#### SteerFace< V > : AbstractSteer< V >
+- `target: Target<V>`
+- `threshold: number`
+
+#### SteerFollow< V > : AbstractSteer< V >
+- `leader: Target<V>`
+- `distance: number`
+
+#### SteerFlowField< V > : AbstractSteer< V >
+- `field: V[]`
+- `fieldBounds: V[]`
+- `fieldsDimension: V`
+- `cellDimension: V`
+- `lookahead: number`
+- `lookaheadPoint: V`
+
+#### SteerPath< V > : AbstractSteer< V >
+- `path: Path<V>`
+- `granularity: number`
+- `lookahead: number`
+- `thickness: number`
+- `buffer: number`
+- `velocity: number`
+- `direction: number`
+- `cyclic: boolean`
+- `reset: boolean`
+
+#### SteerModifier< V > : AbstractSteer< V >
+- `steer: Steer<V>`
+- `weight: number`
+- `update: number`
+- `enabled: boolean`
+
+
 
 ---
 ### Path Finding
