@@ -360,7 +360,11 @@
 - `update: number`
 - `enabled: boolean`
 
-
+- **Accumulator**: A function which accepts the output of multiple behaviors to produce a single output
+  - **Average**: Takes the average of the output
+  - **First**: Takes the first non-zero output
+  - **Max**: Takes the largest output
+  - **Context**: Prioritizes "bad" behaviors above "good"
 
 ---
 ### Path Finding
