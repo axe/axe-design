@@ -18,6 +18,43 @@
 ## Design
 
 
+Entity
+- getId ()
+- getComponent <T>(id: int): T
+- isExpired (): boolean
+- expire (): void
+- getFlags (): number
+- getEntityType (): EntityType
+
+EntityHandle : Entity
+- getEntity (): Entity
+- isValid (): boolean
+
+EntityType
+- getId (): int
+- getComponents (): int []
+- forEach (callback: (Entity))
+
+EntitySystem
+- getIndex (): int
+- isActive (): boolean
+- setActive (active: boolean)
+- getComponents (): int []
+- getProcessor (): EntitySystemProcessor
+- getRequiredFlags (): number
+
+EntitySystemProcessor
+- process (entity: Entity, state: GameState): void
+
+EntityManager
+- getEntity (id): Entity 
+- hasEntity (id): boolean
+- addComponent<T> (memory: Memory<T>): int
+- setComponent<T> (memory: Memory<T>, id: int): boolean
+- getHandle (id: int): Handle
+- addSystem (components: int [], processor: EntitySystemProcessor, requiredFlags: number): EntitySystem
+- getSystem (index: int): EntitySystem
+- process (state: GameState)
 
 
 
