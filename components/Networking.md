@@ -46,6 +46,13 @@ This component is compromised of 4 layers:
 ### References
 
 1. https://docs.unrealengine.com/udk/Three/NetworkingOverview.html#Relevancy
+2. https://developer.valvesoftware.com/wiki/Source_Multiplayer_Networking
+3. https://0fps.net/2014/02/10/replication-in-networked-games-overview-part-1/
+4. https://0fps.net/2014/02/17/replication-in-networked-games-latency-part-2/
+5. https://0fps.net/2014/02/26/replication-in-networked-games-spacetime-consistency-part-3/
+6. https://0fps.net/2014/03/09/replication-in-network-games-bandwidth-part-4/
+7. http://www.gabrielgambetta.com/fast_paced_multiplayer.html
+8. http://gafferongames.com/networking-for-game-programmers/
 
 ## Dependencies
 
