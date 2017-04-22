@@ -72,6 +72,17 @@ This component is compromised of 4 layers:
 
 ## Design
 
+**Packet Format**
+[ protocol ID ]
+[ size ]
+[ crc ]
+[ channel bits ]
+[ channel N ]
+  [ header ]
+  [ message count ]
+  [ message N type ]
+  [ message N data ]
+
 #### class DataOptions
 - fixedMin: number
 - fixedMax: number
@@ -153,6 +164,11 @@ This component is compromised of 4 layers:
 - getOrdered(): boolean
 - getLastPacket(): number
 
+**Headers**
+- Unordered & unreliable: no header
+- Ordered & unreliable: sequence number
+- Reliable: sequence number & acks
+
 #### class MessageType
 - getId(): number
 - getPriority(): number
@@ -183,6 +199,8 @@ This component is compromised of 4 layers:
 ### 4. Game
 
 What does the developer need to do to run a networked game?
+- Configure network properties
+  - MTU, send rate (determined by flow control), number of channels
 - Configure simulation properties
 - Create a component producer for each type of object that may be communicated between server and client. This allows the networking system to get and set values to a subject.
 - Define the actor types and their attributes.
