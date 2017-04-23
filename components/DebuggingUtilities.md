@@ -27,7 +27,7 @@ code & values.
 ### Live Graphs
 
 #### class StatListener
-- onStat( float: value, eventType: int ): void
+- onStat( float: value, eventType: int, parentEventType: int ): void
 
 #### class StatPoint
 - total: int
@@ -51,10 +51,14 @@ code & values.
 - eventType: int
 - name: string
 - sets: StatSet[]
-- addValue( value: float, time: long = now() ): void
+- time: StatTime
+- addValue( value: float, time: long ): void
 - getMinimum()
 - getMaximum()
 - getAverage()
+
+#### interface StatTime
+- getCurrentTime(): long
 
 #### class StatGraph
 - placement: Placement
@@ -62,9 +66,48 @@ code & values.
 - set: StatSet
 - getLines( minPoints, maxPoints, averagePoints, verticalLines, topLine, bottomLine, leftLine, rightLine, averageLine )
 
+#### class Stats
+- time: StatTime
+- databases: StatDatabase[]
+- eventTypes: StatEventType[]
+- newEventType( name: string ): int
+- newDatabase( eventType: int, perSecond: float, lastMinute: boolean, lastHour: boolean ): int
+- newDatabase( eventName: string, perSecond: float, lastMinute: boolean, lastHour: boolean ): int
+
+#### class StatEventType
+- id: int
+- name: string
+- children: StatEventType
+
+**Example**
+```
+// Initialization of game
+int CHARACTER_UPDATE = Stats.newDatabase("character update", 30, true, true);
+int CHARACTER_PHYSICS = Stats.newDatabase("character physics", 30, true, true);
+int CHARACTER_ANIMATION = Stats.newDatabase("character animation", 30, true, true);
+
+Profiler profiler = new Profiler();
+profiler.setListeners( Stats.getDatabases() );
+
+// During game
+profiler.start( CHARACTER_UPDATE );
+  profiler.start( CHARACTER_PHYSICS );
+    // character physics logic
+  profiler.end();
+  profiler.start( CHARACTER_ANIMATION );
+    // character animation logic
+  profiler.end();
+profiler.end();
+
+// With a StatsGraph on screen you can see character update times, and also the
+// options to view sub events physics and animation.
+```
+
 ### Profiling
 
-The profiler keeps track of how much time elapses for any
+The profiler keeps track of how much time elapses over the execution of a
+segment of code. Profiling can be nested - so within a segment of code you have
+various other segments being profiled individually.
 
 #### class Profiler
 - listeners: StatListener[]
