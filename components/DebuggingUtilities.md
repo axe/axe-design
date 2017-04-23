@@ -2,6 +2,10 @@
 
 ## Description
 
+Assist developer in finding and fixing bugs and poor performance. Handles the
+"real-time" requirements a game has with the requirements to be able to inspect
+code & values.
+
 ## Dependencies
 
 - None
@@ -12,15 +16,18 @@
 - Profiling
 - Concurrent Access Detection
 - Console
+- Snapshots
 
 ## Terms
+
+- `Stat`: Number of times an event occurs or some measurement of time, bytes, etc
 
 ## Design
 
 ### Live Graphs
 
 #### class StatListener
-- onStat( float: value, type: int ): void
+- onStat( float: value, eventType: int ): void
 
 #### class StatPoint
 - total: int
@@ -41,9 +48,9 @@
 - getAverage()
 
 #### class StatDatabase : StatListener
-- type: int
+- eventType: int
 - name: string
-- sets: StatSet
+- sets: StatSet[]
 - addValue( value: float, time: long = now() ): void
 - getMinimum()
 - getMaximum()
@@ -52,7 +59,7 @@
 #### class StatGraph
 - placement: Placement
 - database: StatDatabase
-- set: index
+- set: StatSet
 - getLines( minPoints, maxPoints, averagePoints, verticalLines, topLine, bottomLine, leftLine, rightLine, averageLine )
 
 ### Profiling
@@ -61,7 +68,7 @@ The profiler keeps track of how much time elapses for any
 
 #### class Profiler
 - listeners: StatListener[]
-- start( type: int ): void
+- start( eventType: int ): void
 - end(): void
 
 ### Concurrent Access Detection
@@ -71,7 +78,7 @@ threads. A resource can be read by more than one task, but only one task can
 write to it.
 
 #### class Concurrency
-- type: int
+- eventType: int
 - listener: StatListener
 - allocateResource(): ConcurrentResource
 - releaseResource( resource: ConcurrentResource ): void
@@ -123,6 +130,7 @@ different communication channels (ex. one for each subsystem in the game)
 and different levels of verbosity. Message spamming is prevented by simply
 keeping track of the number of occurrences while the message is displayed.
 Commands are sent to the console and when a match is found it is executed.
+Commands are useful for changing game state live, or printing out game state.
 
 #### ConsoleMessage
 - message: string
@@ -164,9 +172,13 @@ Commands are sent to the console and when a match is found it is executed.
 - commands: ConsoleCommand[]
 - defaultCommand: ConsoleCommand
 - matcher: ConsoleCommandMatcher
-- setMessage( type: int, message: string, color: Color, verbosity: ConsoleVerbosity, channel: int ): void
-- addMessageType( type: int ): void
+- setMessage( eventType: int, message: string, color: Color, verbosity: ConsoleVerbosity, channel: int ): void
+- addMessageType( eventType: int ): void
 - addMessage( message: string, color: Color = White, verbosity: ConsoleVerbosity = Message ): void
 - getAvailableCommands( input: string ): ConsoleCommand[]
 - addCommand( pattern: string, handler: ConsoleCommandHandler ): ConsoleCommand
 - execute( input: string ): ConsoleCommand
+
+### Snapshots
+
+Snapshots take game state "pictures" and dumps them to be inspected offline.
