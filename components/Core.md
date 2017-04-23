@@ -25,7 +25,7 @@
 - **CanExpire**: An object which can expire and listen for removal
 - **HasData**: An object which has generic data attached to it
 - **Flags**: A bitset with a maximum size of 64 bits
-- **Match**: 
+- **Match**:
 - **FlagsMatch**:
 - **HasFlags**:
 - **ExpiresCleaner**:
@@ -36,6 +36,7 @@
 - **ListSorted**:
 - **ListLinked**:
 - **ListLinkedNode**:
+- **ListCircular**:
 - **Memory**:
 - **MemoryHeap**:
 - **MemoryPool**:
@@ -51,7 +52,7 @@
 - ( consume: T ): void
 
 #### function Compare< T >
-- ( a: T, b: T ): number
+- ( a: T, b: T ): int
 
 #### interface Factory< T >
 - create(): T
@@ -98,7 +99,7 @@
 
 #### class FlagsMatch : Flags
 - match: Match
-- matches( bits: number|Flags )
+- matches( bits: long|Flags )
 
 #### interface HasFlags
 - getFlags(): Flags
@@ -135,8 +136,8 @@
 
 #### interface Collection< T, N >
 - add( value: T ) : N
-- add( values: T[] ): number
-- add( values: Collection< T > ): number
+- add( values: T[] ): int
+- add( values: Collection< T > ): int
 - remove( value: T ): boolean
 - pop(): T
 - poll() : T
@@ -155,7 +156,7 @@
 - first( predicate: Predicate< T > ): T
 - exists( predicate: Predicate< T > ): boolean
 
-#### class ListArray< T > : Collection< T, number >
+#### class ListArray< T > : Collection< T, int >
 - values: T[]
 - size: int
 - increases: int
@@ -180,6 +181,10 @@
 - isLinked(): boolean
 - front( very: boolean ): void
 - back( very: boolean ): void
+
+#### class ListCircular< T > : ListArray< T >
+- pointer: int
+- getRelative( index: int )
 
 #### interface Memory< T >
 - alloc(): T

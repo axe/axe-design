@@ -43,17 +43,6 @@ This component is compromised of 4 layers:
   - Server determines which actors need synchronized each frame (frequency, relevancy)
 - Provides utilities for communicating between client and server via remote procedure calls
 
-### References
-
-1. https://docs.unrealengine.com/udk/Three/NetworkingOverview.html#Relevancy
-2. https://developer.valvesoftware.com/wiki/Source_Multiplayer_Networking
-3. https://0fps.net/2014/02/10/replication-in-networked-games-overview-part-1/
-4. https://0fps.net/2014/02/17/replication-in-networked-games-latency-part-2/
-5. https://0fps.net/2014/02/26/replication-in-networked-games-spacetime-consistency-part-3/
-6. https://0fps.net/2014/03/09/replication-in-network-games-bandwidth-part-4/
-7. http://www.gabrielgambetta.com/fast_paced_multiplayer.html
-8. http://gafferongames.com/networking-for-game-programmers/
-
 ## Dependencies
 
 - [Core](Core.md)
@@ -72,6 +61,62 @@ This component is compromised of 4 layers:
 
 ## Design
 
+### 1. Transportation Layer
+
+#### class Address
+- hostname: string
+- octets: byte[]
+- port: int
+
+#### class Packet
+- data: byte[]
+- size: int
+
+#### interface Transport
+- getMaximumTransmissionUnit(): int
+- getInactiveTime(): float
+- getDisconnectTime(): float
+- update( timestamp: long ): void
+- newConnection( address: Address ): Connection
+- newServer( address: Address ): Server
+- getConnections(): Connection[]
+- getServers(): Server[]
+- allocatePacket(): Packet
+- releasePacket( packet: Packet ): void
+
+#### enum ConnectionState
+- Connecting
+- Connected
+- Inactive
+- Disconnected
+- Closed
+
+#### interface Connection
+- getTransport(): Transport
+- getState(): ConnectionState
+- getAddress(): Address
+- getLastUpdate(): long
+- update( timestamp: long ): void
+- send( packet: Packet ): boolean
+- receive( out: Packet ): boolean
+- close(): void
+
+#### enum ServerState
+- Initializing
+- Listening
+- Closed
+
+#### interface Server
+- getTransport(): Transport
+- getState(): ServerState
+- getConnections(): Connection[]
+- getLastUpdate(): long
+- update( timestamp: long ): void
+- accept(): int
+- close(): void
+
+### 2. Protocol Layer
+
 **Packet Format**
 [ protocol ID ]
 [ size ]
@@ -84,47 +129,79 @@ This component is compromised of 4 layers:
   [ message N data ]
 
 #### class DataOptions
-- fixedMin: number
-- fixedMax: number
-- fixedBytes: number
-- useAngles: boolean // 2d normal = angle, 3d normal = yaw & pitch
-- forNormal( bytes: number, angles: boolean ): void
-- forPosition( bytes: number, min: number, max: number ): void
+- fixedMin: float
+- fixedMax: float
+- fixedBytes: int
+- compress: boolean                 // store ints with as few bytes as possible
+- useAngles: boolean                // 2d normal = angle, 3d normal = yaw & pitch
+- forNormal( bytes: int, angles: boolean ): void
+- forPosition( bytes: int, min: float, max: float ): void
 
 #### class DataBuffer
-- setOptions( options: DataOptions ); void
-- sizeBooleans( bools: boolean[] ): number
-- writeBooleans( bools: boolean[] ): number
-- readBooleans( out: boolean[], count: number ): void
-- sizeFloat( value: float ): number
-- writeFloat( value: float ): number
-- readFloat(): number
-- sizeInt( value: number ): number
-- writeInt( value: number ): number
-- readInt(): number
-- sizeNormal2( x: number, y: number ): number
-- writeNormal2( x: number, y: number ): number
-- readNormal2( out: number[] ): number[]
-- sizeNormal3( x: number, y: number, z: number ): number
-- writeNormal3( x: number, y: number, z: number ): number
-- readNormal3( out: number[] ): number[]
-- getSize(): number
-- getBytes( out: number[] ): number
+- DataBuffer( bytes: number )
+- setOptions( options: DataOptions ): void
+- getOptions(): DataOptions
+- clear(): void
+- bits(): int
+- bytes(): int
+- align( bytes: int ): void
+- flush( out: byte[] ): int
+- position(): int
+- seek( position: int ): int
+- mark(): int
+- reset(): int
+- sizeBoolean( value: boolean ): int
+- writeBoolean( value: boolean ): int
+- readBoolean(): boolean
+- writeBits( value: int, bits: int ): int
+- readBits( bits: int ): int
+- sizeInt( value: int ): int
+- writeInt( value: int ): int
+- readInt(): int
+- sizeLong( value: long ): int
+- writeLong( value: long ): int
+- readLong(): long
+- sizeFloat( value: float ): int
+- writeFloat( value: float ): int
+- readFloat(): float
+- sizeDouble( value: double ): int
+- writeDouble( value: double ): int
+- readDouble(): double
+- size2f( x: float, y: float ): int
+- write2f( x: float, y: float ): int
+- read2f( components: float[] ): int
+- size2d( x: double, y: double ): int
+- write2d( x: double, y: double ): int
+- read2d( components: double[] ): int
+- size3f( x: float, y: float, z: float ): int
+- write3f( x: float, y: float, z: float ): int
+- read3f( components: float[] ): int
+- size3d( x: double, y: double, z: double ): int
+- write3d( x: double, y: double, z: double ): int
+- read3d( components: double[] ): int
+- size4f( x: float, y: float, z: float, theta: float ): int
+- write4f( x: float, y: float, z: float, theta: float ): int
+- read4f( components: float[] ): int
+- size4d( x: double, y: double, z: double, theta: double ): int
+- write4d( x: double, y: double, z: double, theta: double ): int
+- read4d( components: double[] ): int
 
 #### interface DataTransformer< T >
-- sizeof( data: T ): number
+- size( data: T ): number
 - write( data: T, buffer: DataBuffer ): number
-- read( buffer: DataBuffer ): T
+- read( out: T, buffer: DataBuffer ): T
 
 #### interface Protocol
-- magicNumber: number
-- packetSize: number
-- newClient( host: string, port: number ): Client
-- newServer( port: number ): Server
+- getId(): number
+- getTransport(): Transport
+- newClient( address: Address ): GameClient
+- newServer( address: Address ): GameServer
+- getChannels(): Channel
 - setChannel( id: number, reliable: boolean, ordered: boolean ): Channel
 - getChannel( id: number ): Channel
 
-#### interface Client
+#### interface GameClient
+- getClient(): Client
 - getState(): Flags
 - init(): void
 - isInitialized(): boolean
@@ -155,7 +232,8 @@ This component is compromised of 4 layers:
 - getSendNanos(): long
 - getSendIndex(): int
 
-#### interface Server
+#### interface GameServer
+- getServer(): Server
 - getState(): Flags
 
 #### class Channel
@@ -196,7 +274,7 @@ This component is compromised of 4 layers:
 
 #### Service< T >
 
-### 4. Game
+### 4. Game Layer
 
 What does the developer need to do to run a networked game?
 - Configure network properties
@@ -223,13 +301,19 @@ What does the developer need to do to run a networked game?
 [ remote time ]
 [ actor count ]
 [ actor N id ]
-[ actor N message type ]
+[ actor N action type ]
 [ actor N component bits ] - only for partial updates
 [ actor N creation flags ] - only for creation events (type, player, alwaysRelevant)
 [ actor N component data ] - only for creation, full updates, and partial updates
 
 **Notes**
-- Message types: creation, full update, partial updates, destruction
+- Action types:
+  - 0 = creation
+  - 1 = full update
+  - 2 = partial update
+  - 3 = destruction
+  - 4 = deactivate (hide the actor)
+  - 5 = activate (show the actor)
 - When actor id does not exist locally and all component bits sent - its a creation event
 - When actor id exists locally and component bits is empty - its a destruction event
 
@@ -260,8 +344,8 @@ What does the developer need to do to run a networked game?
 - update( player: NetworkPlayer, relevance: NetworkActorRelevance, time: number, elapsed: GameTime ): void
 
 **Implementations**
-- Distance { componentPosition, maxDistance, maxDistancePriority, maxDistanceLOD, minDistance, minDistancePriority, minDistanceLOD }
-- Field Of View { componentLookAt, fovAngle, priority, lod }
+- Distance { componentPosition, maxDistance, maxDistancePriority, maxDistanceLOD, minDistance, minDistancePriority, minDistanceLOD, lookbehind, lookahead }
+- Field Of View { componentLookAt, fovAngle, priority, lod, lookbehind, lookahead }
 - Coherency { seconds }
 - Running Average { samples }
 
@@ -284,6 +368,7 @@ What does the developer need to do to run a networked game?
 #### NetworkActorType< S >
 - id: number                          // an id that uniquely identifies this type
 - priority: number                    // the default send priority for actors
+- deactivateTime: number              // if the actor hasn't received data in X seconds, automatically deactivate it
 - attributes: NetworkAttributeType[]  // the descriptions of each of the attributes
 - components: ComponentProducer< S >  // takes an attribute from a subject instance
 - factory: Factory< S >               // creates a subject instance
@@ -296,6 +381,7 @@ What does the developer need to do to run a networked game?
 - author: boolean                     // if i'm the author, I need to send the state
 - simulating: boolean                 // whether the attribute history is being applied to the subject
 - remote: boolean                     // whether this actor is processed remotely or locally
+- active: boolean                     // if the actor is visible / should be be updated
 - alwaysRelevant: boolean             // if this actor's state should always be sent
 - type: NetworkActorType< S >         // the actor type
 - attributes: NetworkAttribute[]      // the attributes
@@ -348,3 +434,14 @@ What does the developer need to do to run a networked game?
 - getTimeMinimum(): number
 - getTimeMaximum(): number
 - getValueCount(): number
+
+### References
+
+1. https://docs.unrealengine.com/udk/Three/NetworkingOverview.html#Relevancy
+2. https://developer.valvesoftware.com/wiki/Source_Multiplayer_Networking
+3. https://0fps.net/2014/02/10/replication-in-networked-games-overview-part-1/
+4. https://0fps.net/2014/02/17/replication-in-networked-games-latency-part-2/
+5. https://0fps.net/2014/02/26/replication-in-networked-games-spacetime-consistency-part-3/
+6. https://0fps.net/2014/03/09/replication-in-network-games-bandwidth-part-4/
+7. http://www.gabrielgambetta.com/fast_paced_multiplayer.html
+8. http://gafferongames.com/networking-for-game-programmers/
