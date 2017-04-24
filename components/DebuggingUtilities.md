@@ -20,14 +20,61 @@ code & values.
 
 ## Terms
 
-- `Stat`: Number of times an event occurs or some measurement of time, bytes, etc
+- `Debug Event`: An event that occurs or a measurement that's taken that is
+  pertinent to debugging performance and game state issues. Various components
+  in a game can produce and consume debug events. A debug value as a floating
+  precision number is the only metadata associated with an event. Debug events
+  are referenced by an integer identifier. Debug events can also be hierarchal,
+  for example a profiler can track how much time it takes to update the game
+  and it may also track how much time each component takes to run.
+  - Examples
+    - When a conflict in concurrent access occurs in a multithreaded game.
+    - Networking statistics like packet size, round trip time, dropped packets, etc.
+    - How much time it takes to run physics, AI, spatial database querying, etc.
+  - Producers
+    - Profiler
+    - Concurrent Access Detection
+    - Networking
+  - Consumers
+    - Statistical Database / Graph
+    - Console
+    - Logger
+    - Snapshots
+- `Statistics Database`: A round robin database that tracks debug events over
+  various time intervals. These databases are fixed size and can track events
+  over the past second, minute, to hour.
+- `Console`: A list of recent messages and a control which takes commands
+  entered by the player. Debug events can be linked to messages to display on
+  the console.
+- `Profiler`: Triggers debug events based on how much time it takes to execute a  
+  segment of code.
+- `Snapshots`: A summary of the state of a game taken at a single frame or over
+  multiple frames.
+
 
 ## Design
 
-### Live Graphs
+#### function DebugEventListener
+- ( float: debugValue, debugEvent: int, parentDebugEvent: int ): void
 
-#### class StatListener
-- onStat( float: value, eventType: int, parentEventType: int ): void
+#### function DebugEventListenerChain : DebugEventListener
+- first: DebugEventListener
+- second: DebugEventListener
+
+#### class Debug
+- events: DebugEvent[]
+- newDebugEvent( name: string ): int
+- getDebugEvent( id: int ): DebugEvent
+
+#### class DebugEvent
+- id: int
+- name: string
+- parent: DebugEvent
+- children: DebugEvent
+- sibling: DebugEvent
+- getChildren( consumer: Consumer< DebugEvent > ): void
+
+### Live Graphs
 
 #### class StatPoint
 - total: int
@@ -38,6 +85,7 @@ code & values.
 
 #### class StatSet
 - index: int
+- description: string
 - interval: long
 - points: StatPoint[]
 - pointerIndex: int
@@ -47,12 +95,15 @@ code & values.
 - getMaximum()
 - getAverage()
 
-#### class StatDatabase : StatListener
-- eventType: int
+#### class StatDatabase : DebugEventListener
+- debugEvent: int
 - name: string
 - sets: StatSet[]
 - time: StatTime
+- live: boolean
+- alwaysLive: boolean
 - addValue( value: float, time: long ): void
+- isActive(): boolean
 - getMinimum()
 - getMaximum()
 - getAverage()
@@ -65,19 +116,15 @@ code & values.
 - database: StatDatabase
 - set: StatSet
 - getLines( minPoints, maxPoints, averagePoints, verticalLines, topLine, bottomLine, leftLine, rightLine, averageLine )
+- getDebugEvent(): DebugEvent
 
-#### class Stats
+#### class Stats : DebugEventListener
 - time: StatTime
 - databases: StatDatabase[]
-- eventTypes: StatEventType[]
-- newEventType( name: string ): int
-- newDatabase( eventType: int, perSecond: float, lastMinute: boolean, lastHour: boolean ): int
+- newDatabase( debugEvent: int, perSecond: float, lastMinute: boolean, lastHour: boolean ): int
 - newDatabase( eventName: string, perSecond: float, lastMinute: boolean, lastHour: boolean ): int
+- getDatabase( debugEvent: int )
 
-#### class StatEventType
-- id: int
-- name: string
-- children: StatEventType
 
 **Example**
 ```
@@ -87,7 +134,7 @@ int CHARACTER_PHYSICS = Stats.newDatabase("character physics", 30, true, true);
 int CHARACTER_ANIMATION = Stats.newDatabase("character animation", 30, true, true);
 
 Profiler profiler = new Profiler();
-profiler.setListeners( Stats.getDatabases() );
+profiler.listener = Stats;
 
 // During game
 profiler.start( CHARACTER_UPDATE );
@@ -110,8 +157,8 @@ segment of code. Profiling can be nested - so within a segment of code you have
 various other segments being profiled individually.
 
 #### class Profiler
-- listeners: StatListener[]
-- start( eventType: int ): void
+- listener: DebugEventListener
+- start( debugEvent: int ): void
 - end(): void
 
 ### Concurrent Access Detection
@@ -121,13 +168,15 @@ threads. A resource can be read by more than one task, but only one task can
 write to it.
 
 #### class Concurrency
-- eventType: int
-- listener: StatListener
-- allocateResource(): ConcurrentResource
+- debugEvent: int
+- listener: DebugEventListener
+- allocateResource( debugEvent: int = debugEvent ): ConcurrentResource
 - releaseResource( resource: ConcurrentResource ): void
 
 #### class ConcurrentResource
+- debugEvent: int
 - state: ConcurrentState
+- concurrency: Concurrency
 - getAccess( access: ConcurrentState ): boolean
 - releaseAccess(): void
 
@@ -175,17 +224,18 @@ keeping track of the number of occurrences while the message is displayed.
 Commands are sent to the console and when a match is found it is executed.
 Commands are useful for changing game state live, or printing out game state.
 
-#### ConsoleMessage
+#### class ConsoleMessage
 - message: string
 - age: float
 - occurrences: int
 - verbosity: ConsoleVerbosity
 - channel: int
 - color: Color
+- displayed: boolean
 - next: ConsoleMessage
 - update( dt: float ): void
 
-#### ConsoleCommand
+#### class ConsoleCommand
 - pattern: string                     // set time [hour]
 - handler: ConsoleCommandHandler
 
@@ -194,19 +244,20 @@ Commands are useful for changing game state live, or printing out game state.
 - `[hour=0]`: Optional single word input with a default value
 - `[hour*]`: Any number word input
 
-#### ConsoleCommandHandler
-- handle( map: {}, input: string, command: ConsoleCommand, console: Console ): void
+#### function ConsoleCommandHandler
+- ( map: {}, input: string, command: ConsoleCommand, console: Console ): void
 
-#### ConsoleCommandMatcher
-- matches( input: string, command: ConsoleCommand ): boolean
+#### function ConsoleCommandMatcher
+- ( input: string, command: ConsoleCommand ): boolean
 
-#### ConsoleVerbosity
+#### enum ConsoleVerbosity
 - Message = 0
 - Fatal = 1
 - Debug = 2
 - Warn = 3
 
-#### Console : StatListener
+#### class Console : DebugEventListener
+- visible: boolean
 - channel: int
 - maximumMessages: int
 - lastMessage: ConsoleMessage
@@ -215,8 +266,8 @@ Commands are useful for changing game state live, or printing out game state.
 - commands: ConsoleCommand[]
 - defaultCommand: ConsoleCommand
 - matcher: ConsoleCommandMatcher
-- setMessage( eventType: int, message: string, color: Color, verbosity: ConsoleVerbosity, channel: int ): void
-- addMessageType( eventType: int ): void
+- setDebugMessage( debugEvent: int, message: string, color: Color, verbosity: ConsoleVerbosity, channel: int ): void
+- addDebugMessage( debugEvent: int ): void
 - addMessage( message: string, color: Color = White, verbosity: ConsoleVerbosity = Message ): void
 - getAvailableCommands( input: string ): ConsoleCommand[]
 - addCommand( pattern: string, handler: ConsoleCommandHandler ): ConsoleCommand
@@ -224,4 +275,38 @@ Commands are useful for changing game state live, or printing out game state.
 
 ### Snapshots
 
-Snapshots take game state "pictures" and dumps them to be inspected offline.
+Snapshots take game state pictures or videos and dumps them to be inspected offline.
+
+#### function SnapshotTaker< T >
+- ( snapshot: Snapshot )
+
+#### enum SnapshotAggregate
+- None = 0
+- Min = 1
+- Max = 2
+- Average = 4
+- Total = 8
+- First = 16
+- Last = 32
+- List = 64
+- Count = 128
+- Group = 256
+
+#### class Snapshot : DebugEventListener
+- values: SnapshotValue[]
+- begin( name: string ): void
+- addNumber( name: string, value: float, aggregates: int ): void
+- addString( name: string, value: string, aggregates: int ): void
+- end(): void
+
+#### class SnapshotValue
+- path: string
+- values: float[]
+
+#### class Snapshots
+- takers: SnapshotTaker
+- snapshot: Snapshot
+- snap(): void
+- begin(): void
+- end(): void
+- update(): void
