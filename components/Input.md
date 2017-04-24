@@ -26,7 +26,7 @@ their current value or a user can listen for input events.
 - `Key`: A key on a keyboard.
 - `KeyInput`: An input for a key (and has a character).
 - `KeyEngine`: Initializes and updates key inputs and provides other settings.
-- `MouseButtonInput`: An input for mouse buttons that keeps track of where the mouse button was pressed.
+- `MouseInput`: An input for mouse buttons that keeps track of where the mouse button was pressed.
 - `MouseState`: Contains information on where the mouse is.
 - `MouseEngine`: Initializes and updates mouse input and provides other settings.
 - `Controller`: A game pad that may or may not be connected.
@@ -52,6 +52,7 @@ their current value or a user can listen for input events.
 - press: boolean              // whether a press event should be triggered this frame
 - changeTime: long            // the exact time this input changed state
 - lastUpdate: long            // the last time this input state updated
+- name: string                // the name of the input, assigned by the system or specified by the user
 - isDown(): boolean
 - isUp(): boolean
 - isPress(): boolean
@@ -114,7 +115,7 @@ their current value or a user can listen for input events.
 - setPressDelay( pressDelay: float ): void
 - getPressDelay(): float
 
-#### class MouseButtonInput : Input
+#### class MouseInput : Input
 - x: int
 - y: int
 
@@ -123,6 +124,7 @@ their current value or a user can listen for input events.
 - y: int
 - dx: int
 - dy: int
+- delta: InputAxis
 - sdx: int
 - sdy: int
 - wheel: int
@@ -130,10 +132,11 @@ their current value or a user can listen for input events.
 - inside: Input
 
 #### interface MouseEngine
+- BUTTON_COUNT: int = 16
 - update( currentTime: long ): void
-- getButton( index: int ): MouseButtonInput
+- getButton( index: int ): MouseInput
 - getMouse(): Mouse
-- getQueue(): Queue< MouseButtonInput >
+- getQueue(): Queue< MouseInput >
 - setGrabbed( grabbed: boolean ): void
 - isGrabbed(): boolean
 - setHidden( hidden: boolean ): void
@@ -144,17 +147,21 @@ their current value or a user can listen for input events.
 - getPressDelay(): float
 
 #### interface Controller
+- AXIS_COUNT: int = 8
+- BUTTON_COUNT: int = 32
 - getConnectOrder(): int
 - isConnected(): boolean
-- getButtonCount(): int
 - getButton( index: int ): Input
-- getAxisCount(): int
+- getButtonCount(): int
 - getAxis( index: int ): InputAxis
+- getAxisCount(): int
 
 #### interface ControllerEngine
+- CONTROLLER_COUNT: int = 16
 - update( currentTime: long ): void
-- getControllerCount(): int
+- forEachConnected( consumer: Consumer< Controller > ): int
 - getController( index: int ): Controller
+- getControllerCount(): int
 - setPressInterval( pressInterval: float ): void
 - getPressInterval(): float
 - setPressDelay( pressDelay: float ): void
