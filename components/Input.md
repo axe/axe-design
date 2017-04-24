@@ -77,8 +77,10 @@ their current value or a user can listen for input events.
 
 #### class InputGesture : Input
 - inputs: Input[]
-- currentState: int
+- manager: Inputs
+- currentInput: int
 - timeFrame: float
+- startTime: long
 
 #### class InputAxis : Input
 - x: Input
@@ -179,6 +181,7 @@ their current value or a user can listen for input events.
 - id: int
 - active: boolean
 - events: InputEvent[]
+- defaultListener: InputListener
 - setAction( action: A, input: Input, type: InputEventType, listener: InputListener ): void
 - getActionEvent( action: A ): InputEvent
 - update( currentTime: long ): void
@@ -193,6 +196,8 @@ their current value or a user can listen for input events.
 - gesture( timeFrame: float, inputs: Input[] ): InputGesture
 - any( inputs: Input[] ): InputAll
 - all( inputs: Input[] ): InputAny
+- addChange( input: Input ): void
+- forEachDown( consumer: Consumer< Input > ): int
 - newContext(): InputContext
 - setContext( id: int ): boolean
 - addContext( id: int ): boolean
