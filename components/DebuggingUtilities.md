@@ -70,6 +70,7 @@ code & values.
 - id: int
 - name: string
 - parent: DebugEvent
+- depth: int
 - children: DebugEvent
 - sibling: DebugEvent
 - getChildren( consumer: Consumer< DebugEvent > ): void
@@ -137,11 +138,11 @@ Profiler profiler = new Profiler();
 profiler.listener = Stats;
 
 // During game
-profiler.start( CHARACTER_UPDATE );
-  profiler.start( CHARACTER_PHYSICS );
+profiler.begin( CHARACTER_UPDATE );
+  profiler.begin( CHARACTER_PHYSICS );
     // character physics logic
   profiler.end();
-  profiler.start( CHARACTER_ANIMATION );
+  profiler.begin( CHARACTER_ANIMATION );
     // character animation logic
   profiler.end();
 profiler.end();
@@ -158,7 +159,7 @@ various other segments being profiled individually.
 
 #### class Profiler
 - listener: DebugEventListener
-- start( debugEvent: int ): void
+- begin( debugEvent: int ): void
 - end(): void
 
 ### Concurrent Access Detection
@@ -277,36 +278,45 @@ Commands are useful for changing game state live, or printing out game state.
 
 Snapshots take game state pictures or videos and dumps them to be inspected offline.
 
-#### function SnapshotTaker< T >
+#### function SnapshotTaker
 - ( snapshot: Snapshot )
 
 #### enum SnapshotAggregate
 - None = 0
-- Min = 1
-- Max = 2
-- Average = 4
-- Total = 8
-- First = 16
-- Last = 32
-- List = 64
-- Count = 128
-- Group = 256
+- Min = 1                 // float
+- Max = 2                 // float
+- Average = 4             // float
+- Total = 8               // float
+- First = 16              // float, string
+- Last = 32               // float, string
+- List = 64               // float, string
+- Count = 128             // float, string
+- Group = 256             // float, string
 
 #### class Snapshot : DebugEventListener
-- values: SnapshotValue[]
+- floats: Map< string, SnapshotFloat >
+- strings: Map< string, SnapshotString >
+- frames: int
+- beginTime: long
+- endTime: long
 - begin( name: string ): void
-- addNumber( name: string, value: float, aggregates: int ): void
+- addFloat( name: string, value: float, aggregates: int ): void
 - addString( name: string, value: string, aggregates: int ): void
 - end(): void
 
-#### class SnapshotValue
+#### class SnapshotFloat
 - path: string
 - values: float[]
 
+#### class SnapshotString
+- path: string
+- values: string[]
+
 #### class Snapshots
-- takers: SnapshotTaker
+- takers: LinkedList< SnapshotTaker >
 - snapshot: Snapshot
-- snap(): void
+- snap(): Snapshot
 - begin(): void
-- end(): void
+- end(): Snapshot
 - update(): void
+- addTaker( taker: SnapshotTaker ): ListLinkedNode< SnapshotTaker >
