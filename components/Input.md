@@ -16,30 +16,30 @@ their current value or a user can listen for input events.
 
 ## Terms
 
-- `InputState`: The state of any given input (key, mouse, joystick axis, etc).
-- `InputStateAll`: A compound state which is triggered when ALL sub states are down.
-- `InputStateAny`: A compound state which is triggered when ANY sub states are down.
-- `InputStateFiltered`: A filtered view of an input state.
-- `InputStateRange`: A view of an input state which depends on the raw input being between a minimum and maximum value.
-- `InputStateGesture`: A combination of inputs that must occur without interruption in a certain order in a certain time frame.
-- `InputStateAxis`: An input state with x and y axis states.
+- `Input`: The state of any given input (key, mouse, joystick axis, etc).
+- `InputAll`: A compound input which is triggered when ALL sub inputs are down.
+- `InputAny`: A compound input which is triggered when ANY sub inputs are down.
+- `InputFiltered`: A filtered view of an input.
+- `InputRange`: A view of an input which depends on the raw input being between a minimum and maximum value.
+- `InputGesture`: A combination of inputs that must occur without interruption in a certain order in a certain time frame.
+- `InputAxis`: An input with x and y axis inputs.
 - `Key`: A key on a keyboard.
-- `KeyState`: An input state for a key (and has a character).
-- `KeyEngine`: Initializes and updates key states and provides other settings.
-- `MouseButtonState`: An input state for mouse buttons that keeps track of where the mouse button was pressed.
+- `KeyInput`: An input for a key (and has a character).
+- `KeyEngine`: Initializes and updates key inputs and provides other settings.
+- `MouseButtonInput`: An input for mouse buttons that keeps track of where the mouse button was pressed.
 - `MouseState`: Contains information on where the mouse is.
-- `MouseEngine`: Initializes and updates mouse state and provides other settings.
+- `MouseEngine`: Initializes and updates mouse input and provides other settings.
 - `Controller`: A game pad that may or may not be connected.
-- `ControllerEngine`: Initializes and updates controller state and provides other settings.
+- `ControllerEngine`: Initializes and updates controller input and provides other settings.
 - `InputListener`: A function which is notified when an event occurs on some input.
 - `InputEventType`: A way which input can change.
-- `InputEvent`: A grouping between an InputState, an InputEventType, and an InputListener.
+- `InputEvent`: A grouping between an Input, an InputEventType, and an InputListener.
 - `InputContext`: A context to which inputs are mapped to actions. InputContexts change based on screens and the UI, and multiple may be active at a time.
-- `Inputs`: Manages input contexts, has a list of the last raw input states to change, and provides functions for combining & decorating input states.
+- `Inputs`: Manages input contexts and provides functions for combining & decorating inputs.
 
 ## Design
 
-#### class InputState
+#### class Input
 - input: int                  
 - window: int                 // an identifier for which window the input was last changed
 - down: boolean               // is the input in a non-default state?
@@ -59,63 +59,64 @@ their current value or a user can listen for input events.
 - setDown( down: boolean, inputTime: long ): void
 - update( currentTime: long, pressDelay: float, pressInterval: float ): void
 
-#### class InputStateAll : InputState
-- states: InputState[]        // the inputs to look at
+#### class InputAll : Input
+- inputs: Input[]        // the inputs to look at
 
-#### class InputStateAny : InputState
-- states: InputState[]        // the inputs to look at
+#### class InputAny : Input
+- inputs: Input[]        // the inputs to look at
 
-#### class InputStateFiltered : InputState
-- state: InputState           // the input to filter
+#### class InputFiltered : Input
+- input: Input           // the input to filter
 - filterArray: float[]        // the last N raw input values to use to calculate the filtered value
 - filterIndex: int            // the index to the last raw input into filterArray
 
-#### class InputStateRange : InputState
-- state: InputState           // the input the modify
+#### class InputRange : Input
+- input: Input           // the input the modify
 - min: float                  // the minimum value the raw input must be to trigger a down state
-- max: float                  // the upper bound used to normalize the input state value
+- max: float                  // the upper bound used to normalize the input value
 
-#### class InputStateGesture : InputState
-- states: InputState[]
+#### class InputGesture : Input
+- inputs: Input[]
 - currentState: int
 - timeFrame: float
 
-#### class InputStateAxis : InputState
-- x: InputState
-- y: InputState
-- up: InputState
-- down: InputState
-- left: InputState
-- right: InputState
+#### class InputAxis : Input
+- x: Input
+- y: Input
+- up: Input
+- down: Input
+- left: Input
+- right: Input
 - normalX: float
 - normalY: float
+- magnitude: float
 
 #### enum Key
 - A, B, C, etc
 
-#### class KeyState : InputState
+#### class KeyInput : Input
 - key: Key
 - character: char
 
 #### interface KeyEngine
 - update( currentTime: long ): void
-- getKey( key: Key ): KeyState
-- getShift(): KeyState
-- getControl(): KeyState
-- getMeta(): KeyState
-- getCommand(): KeyState
-- getAlt(): KeyState
-- getQueue() Queue< KeyState >
+- getKey( key: Key ): KeyInput
+- getShift(): KeyInput
+- getControl(): KeyInput
+- getMeta(): KeyInput
+- getCommand(): KeyInput
+- getAlt(): KeyInput
+- getQueue() Queue< KeyInput >
 - setPressInterval( pressInterval: float ): void
 - getPressInterval(): float
 - setPressDelay( pressDelay: float ): void
 - getPressDelay(): float
 
-#### class MouseButtonState : InputState
+#### class MouseButtonInput : Input
 - x: int
 - y: int
 
-#### class MouseState
+#### class Mouse
 - x: int
 - y: int
 - dx: int
@@ -124,13 +125,13 @@ their current value or a user can listen for input events.
 - sdy: int
 - wheel: int
 - swheel: int
-- inside: InputState
+- inside: Input
 
 #### interface MouseEngine
 - update( currentTime: long ): void
-- getButton( index: int ): MouseButtonState
-- getMouse(): MouseState
-- getQueue(): Queue< MouseButtonState >
+- getButton( index: int ): MouseButtonInput
+- getMouse(): Mouse
+- getQueue(): Queue< MouseButtonInput >
 - setGrabbed( grabbed: boolean ): void
 - isGrabbed(): boolean
 - setHidden( hidden: boolean ): void
@@ -144,9 +145,9 @@ their current value or a user can listen for input events.
 - getConnectOrder(): int
 - isConnected(): boolean
 - getButtonCount(): int
-- getButton( index: int ): InputState
+- getButton( index: int ): Input
 - getAxisCount(): int
-- getAxis( index: int ): InputStateAxis
+- getAxis( index: int ): InputAxis
 
 #### interface ControllerEngine
 - update( currentTime: long ): void
@@ -157,7 +158,7 @@ their current value or a user can listen for input events.
 - setPressDelay( pressDelay: float ): void
 - getPressDelay(): float
 
-#### function InputListener< S : InputState >
+#### function InputListener< S : Input >
 - ( input: S, type: InputEventType ): void
 
 #### enum InputEventType
@@ -166,11 +167,11 @@ their current value or a user can listen for input events.
 - Change
 - Press
 - Held
-- isType( state: InputState ): boolean
+- isType( input: Input ): boolean
 
 #### class InputEvent
 - type: InputEventType
-- state: InputState
+- input: Input
 - listener: InputListener
 - isTriggered(): boolean
 
@@ -178,20 +179,20 @@ their current value or a user can listen for input events.
 - id: int
 - active: boolean
 - events: InputEvent[]
-- setAction( action: A, state: InputState, type: InputEventType, listener: InputListener ): void
+- setAction( action: A, input: Input, type: InputEventType, listener: InputListener ): void
 - getActionEvent( action: A ): InputEvent
 - update( currentTime: long ): void
 
 #### class Inputs
 - contexts: InputContext[]
-- changeHistory: ListCircular< InputState >
+- changeHistory: ListCircular< Input >
 - update( currentTime: long ): void
-- filtered( state: InputState, samples: int ): InputStateFiltered
-- range( state: InputState, min: float, max: float ): InputStateRange
-- axis( x: InputState, y: InputState ): InputStateAxis
-- gesture( timeFrame: float, states: InputState[] ): InputStateGesture
-- any( states: InputState[] ): InputStateAll
-- all( states: InputState[] ): InputStateAny
+- filtered( input: Input, samples: int ): InputFiltered
+- range( input: Input, min: float, max: float ): InputRange
+- axis( x: Input, y: Input ): InputAxis
+- gesture( timeFrame: float, inputs: Input[] ): InputGesture
+- any( inputs: Input[] ): InputAll
+- all( inputs: Input[] ): InputAny
 - newContext(): InputContext
 - setContext( id: int ): boolean
 - addContext( id: int ): boolean
