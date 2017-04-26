@@ -76,7 +76,7 @@ can be a point - as long as it has a Calculator< T > implementation.
 
 ## Design
 
-#### Path< T >
+#### interface Path< T >
 - set( out: T, delta: float ): T
 - get( delta: float ): T
 - getPointCount(): int
@@ -85,105 +85,105 @@ can be a point - as long as it has a Calculator< T > implementation.
 - getCalculator(): Calculator< T >
 - setCalculator( calculator: Calculator< T > ): void
 
-#### PathGenerator< T > : Factory< Path< T > >
+#### interface PathGenerator< T > : Factory< Path< T > >
 - create(): Path< T >
 - create( calculator: Calculator< T > ): Path< T >
 - create( calculator: Calculator< T >, points: T[] ): Path< T >
 
-#### PathPoint< T > : Path< T >
+#### class PathPoint< T > : Path< T >
 - point: T
 
-#### PathJump< T > : Path< T >
+#### class PathJump< T > : Path< T >
 - points: T[]
 
-#### Tween< T > : Path< T >
+#### class Tween< T > : Path< T >
 - start: T
 - end: T
 
-#### PathIntegral< T > : Path< T >
+#### class PathIntegral< T > : Path< T >
 - points: T[]
 
-#### PathDelta< T > : Path< T >
+#### class PathDelta< T > : Path< T >
 - points: T[]
 - deltas: float[]
 
-#### PathLinear< T > : PathDelta< T >
+#### class PathLinear< T > : PathDelta< T >
 
-#### PathTimed< T > : Path< T >
+#### class PathTimed< T > : Path< T >
 - points: T[]
 - times: float[]
 
-#### PathEased< T > : PathTimed< T >
+#### class PathEased< T > : PathTimed< T >
 - easings: Easing[]
 
-#### PathQuadratic< T > : Path< T >
+#### class PathQuadratic< T > : Path< T >
 - p0: T
 - p1: T
 - p2: T
 
-#### PathCubic< T > : Path< T >
+#### class PathCubic< T > : Path< T >
 - p0: T
 - p1: T
 - p2: T
 - p3: T
 
-#### PathBezier< T > : Path< T >
+#### class PathBezier< T > : Path< T >
 - points: T[]
 - weights: int[]
 - inverses: float[]
 
-#### PathHermite< T > : Path< T >
+#### class PathHermite< T > : Path< T >
 - start: T
 - startTangent: T
 - end: T
 - endTangent: T
 
-#### PathParametricCubic< T > : Path< T >
+#### class PathParametricCubic< T > : Path< T >
 - points: T[]
 - matrix: float[] []
 - weight: float
 - invert: boolean
 - loop: boolean
 
-#### PathBasisSpline< T > : PathParametricCubic< T >
+#### class PathBasisSpline< T > : PathParametricCubic< T >
 
-#### PathCatmullRom< T > : PathParametricCubic< T >
+#### class PathCatmullRom< T > : PathParametricCubic< T >
 
-#### PathChaikin< T > : Path< T >
+#### class PathChaikin< T > : Path< T >
 - points: T[]
 - depth: int
 - loops: boolean
 - midpoint: float
 
-#### PathKramer< T > : Path< T >
+#### class PathKramer< T > : Path< T >
 - points: T[]
 - depth: int
 - looseness: float
 - roughness: float
 - loops: boolean
 
-#### PathQuadraticCorner< T > : Path< T >
+#### class PathQuadraticCorner< T > : Path< T >
 - points: T[]
 - midpoint: float
 - loops: boolean
 
-#### PathAdditive< T > : Path< T >
+#### class PathAdditive< T > : Path< T >
 - first: Path< T >
 - second: Path< T >
 
-#### PathScaled< T > : Path< T >
+#### class PathScaled< T > : Path< T >
 - path: Path< T >
 - scale: T
 
-#### PathSub< T > : Path< T >
+#### class PathSub< T > : Path< T >
 - path: Path< T >
 - start: float
 - end: float
 
-#### PathCombo< T > : Path< T >
+#### class PathCombo< T > : Path< T >
 - paths: Path< T >[]
 - times: float[]
 
-#### PathCompiled< T > : PathJump< T >
+#### class PathCompiled< T > : PathJump< T >
 
-#### PathUniform< T > : PathDelta< T >
+#### class PathUniform< T > : PathDelta< T >
