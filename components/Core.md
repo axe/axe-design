@@ -42,6 +42,7 @@
 - **MemoryPool**:
 - **IntStack**:
 - **Registry**:
+- **Distribution**:
 
 ## Design
 
