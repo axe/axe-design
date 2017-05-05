@@ -6,6 +6,23 @@ The Input component converts raw input data from devices into consistent data
 presented in a platform independent API. The state of inputs can be checked for
 their current value or a user can listen for input events.
 
+The Input component has the following responsibilities:
+
+- Provide interfaces for mouse, keyboard, controllers, and peripheral sensors.
+- Allows users to refine raw input via clamping and filtering.
+- Allow users to define complex inputs to be used along side normal inputs
+  - An input that is triggered when ANY sub-inputs are triggered
+  - An input that is triggered when ALL sub-inputs are triggered
+  - An input gesture (sequence of inputs in a given time span)
+  - An input that is made up of X and Y axis inputs
+- Notify user when interfaces are available, connect, and disconnect.
+- Provide a way to map inputs to actions (input contexts).
+- Provide a way to control which contexts are active in game.
+  - A stack of contexts that can be pushed/popped based on the active UI elements
+- Provide a way to capture user input for mapping actions to inputs.
+- Ensure an input is only involved in one action at a time.
+- Provide a way for the user to control input timing (delays, press intervals, etc)
+
 ## Dependencies
 
 - None
@@ -53,6 +70,7 @@ their current value or a user can listen for input events.
 - changeTime: long            // the exact time this input changed state
 - lastUpdate: long            // the last time this input state updated
 - name: string                // the name of the input, assigned by the system or specified by the user
+- source: byte                // the source of the input - each source (key, mouse, controllers) have their own ID
 - isDown(): boolean
 - isUp(): boolean
 - isPress(): boolean
@@ -84,8 +102,8 @@ their current value or a user can listen for input events.
 - startTime: long
 
 #### class InputAxis : Input
-- x: Input
-- y: Input
+- x: InputRange
+- y: InputRange
 - up: Input
 - down: Input
 - left: Input
@@ -94,6 +112,15 @@ their current value or a user can listen for input events.
 - normalY: float
 - magnitude: float
 
+#### class InputContextAction< A > : Input
+- action: A
+- context: InputContext< A >
+
+#### interface InputSource
+- getInput( index: int ): Input
+- getInputCount(): int
+- getSource(): byte
+
 #### enum Key
 - A, B, C, etc
 
@@ -101,7 +128,7 @@ their current value or a user can listen for input events.
 - key: Key
 - character: char
 
-#### interface KeyEngine
+#### interface KeyEngine : InputSource
 - update( currentTime: long ): void
 - getKey( key: Key ): KeyInput
 - getShift(): KeyInput
@@ -131,7 +158,7 @@ their current value or a user can listen for input events.
 - swheel: int
 - inside: Input
 
-#### interface MouseEngine
+#### interface MouseEngine : InputSource
 - BUTTON_COUNT: int = 16
 - update( currentTime: long ): void
 - getButton( index: int ): MouseInput
@@ -146,7 +173,7 @@ their current value or a user can listen for input events.
 - setPressDelay( pressDelay: float ): void
 - getPressDelay(): float
 
-#### interface Controller
+#### interface Controller : InputSource
 - AXIS_COUNT: int = 8
 - BUTTON_COUNT: int = 32
 - getConnectOrder(): int
@@ -186,6 +213,7 @@ their current value or a user can listen for input events.
 
 #### class InputContext< A : enum >
 - id: int
+- name: string
 - active: boolean
 - events: InputEvent[]
 - defaultListener: InputListener
@@ -193,9 +221,17 @@ their current value or a user can listen for input events.
 - getActionEvent( action: A ): InputEvent
 - update( currentTime: long ): void
 
+#### function InputCapturer
+- onCapture( changed: Input, accumulated: InputAll ): boolean
+
 #### class Inputs
+- mouse: MouseEngine
+- keys: KeyEngine
+- controllers: ControllerEngine
 - contexts: InputContext[]
+- pushed: boolean[]
 - changeHistory: ListCircular< Input >
+- capturer: InputCapturer
 - update( currentTime: long ): void
 - filtered( input: Input, samples: int ): InputFiltered
 - range( input: Input, min: float, max: float ): InputRange
@@ -203,9 +239,12 @@ their current value or a user can listen for input events.
 - gesture( timeFrame: float, inputs: Input[] ): InputGesture
 - any( inputs: Input[] ): InputAll
 - all( inputs: Input[] ): InputAny
+- capture( capturer: InputCapturer ): void
 - addChange( input: Input ): void
 - forEachDown( consumer: Consumer< Input > ): int
-- newContext(): InputContext
+- newContext( name: string = null ): InputContext
 - setContext( id: int ): boolean
 - addContext( id: int ): boolean
+- pushContext( id: int ): boolean
+- popContext(): boolean
 - clearContexts(): void
