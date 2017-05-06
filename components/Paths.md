@@ -2,7 +2,7 @@
 
 ## Description
 
-The Paths component contains point, linear, curved,  disjoint, combination, and
+The Paths component contains point, linear, curved, disjoint, combination, and
 subset paths used in animation, particle effects, and networking. Any data type
 can be a point - as long as it has a Calculator< T > implementation.
 
