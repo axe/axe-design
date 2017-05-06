@@ -22,11 +22,11 @@ This component offers a simple and decoupled way for components to communicate. 
 
 ## Design
 
-#### Event< L >
+#### class Event< L >
 - id: int
 - name: string
 
-#### EventListener< L >
+#### class EventListener< L >
 - priority: int
 - once: boolean
 - listener: L
@@ -37,17 +37,17 @@ This component offers a simple and decoupled way for components to communicate. 
 - remove(): boolean
 - stop(): void
 
-#### EventListenerList< L >
+#### class EventListenerList< L >
 - event: Event< L >
 - head: EventListener< L >
 - add( listener: L, once: boolean, priority: int = 5 ): EventListener< L >
 - clear(): void
 
-#### EventQueued< L >
+#### class EventQueued< L >
 - event: Event< L >
 - arguments: object
 
-#### EventSystem
+#### class EventSystem
 - lists: EventListenerList[]
 - queued: Queue< EventQueued >
 - synchronous: boolean
@@ -58,6 +58,9 @@ This component offers a simple and decoupled way for components to communicate. 
 - trigger< L >( event: Event< L > ): L
 - off< L >( event: Event< L > ): void
 - process(): int
+
+#### interface HasEvents
+- getEvents(): EventSystem
 
 ### Example
 
