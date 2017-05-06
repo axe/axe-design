@@ -22,43 +22,42 @@ This component offers a simple and decoupled way for components to communicate. 
 
 ## Design
 
-#### Event<L>
-- `id: number`
-- `name: string`
-- `new( id: number, name: string )`
+#### Event< L >
+- id: int
+- name: string
 
-#### EventListener<L>
-- `priority: number`
-- `once: boolean`
-- `listener: L`
-- `stopped: boolean`
-- `next: EventListener<L>`
-- `muted: boolean`
-- `mute( muted: boolean ): boolean`
-- `remove(): boolean`
-- `stop(): void`
+#### EventListener< L >
+- priority: int
+- once: boolean
+- listener: L
+- stopped: boolean
+- next: EventListener< L >
+- muted: boolean
+- mute( muted: boolean ): boolean
+- remove(): boolean
+- stop(): void
 
-#### EventListenerList<L>
-- `event: Event<L>`
-- `head: EventListener<L>`
-- `add( listener: L, once: boolean, priority: number = 5 ): EventListener<L>`
-- `clear(): void`
+#### EventListenerList< L >
+- event: Event< L >
+- head: EventListener< L >
+- add( listener: L, once: boolean, priority: int = 5 ): EventListener< L >
+- clear(): void
 
-#### EventQueued<L>
-- `event: Event<L>`
-- `arguments: object`
+#### EventQueued< L >
+- event: Event< L >
+- arguments: object
 
 #### EventSystem
-- `lists: EventListenerList[]`
-- `queued: Queue<EventQueued>`
-- `synchronous: boolean`
-- `create<L>( name: string ): Event<L>`
-- `on<L>( event: Event<L>, listener: L, priority: number = 5 ): EventListener<L>`
-- `once<L>( event: Event<L>, listener: L, priority: number = 5 ): EventListener<L>`
-- `off<L>( event: Event<L> ): void`
-- `trigger<L>( event: Event<L> ): L`
-- `queue<L>( event: Event<L> ): L`
-- `process(): number`
+- lists: EventListenerList[]
+- queued: Queue< EventQueued >
+- synchronous: boolean
+- create< L >( name: string ): Event< L >
+- on< L >( event: Event< L >, listener: L, priority: int = 5 ): EventListener< L >
+- once< L >( event: Event< L >, listener: L, priority: int = 5 ): EventListener< L >
+- queue< L >( event: Event< L > ): L
+- trigger< L >( event: Event< L > ): L
+- off< L >( event: Event< L > ): void
+- process(): int
 
 ### Example
 
