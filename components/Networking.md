@@ -288,6 +288,7 @@ What does the developer need to do to run a networked game?
 - Handle actor creation and destruction events
 - Define which inputs are sent for a player to the server (mouse movement, directional keys, shooting)
 - Define how inputs affect the actors for a player (used in client-side prediction and server simulation)
+- Visible actor state can be compressed based on how far away/out of focus the actor is
 
 #### ComponentProducer< S >
 - getComponent< T >( subject: S, component: number ): T
